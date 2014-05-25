@@ -1,0 +1,13 @@
+{
+    "name": "muchacuba/sms-queue",
+    "require": {
+        "php": ">=5.3.0",
+        "cubalider/sms-queue": "0.1.*",
+        "muchacuba/mobile": "0.1.*",
+        "doctrine/orm": "2.4.*",
+        "gedmo/doctrine-extensions": "2.3.*"
+    },
+    "autoload": {
+        "psr-0": { "Muchacuba\\Component\\Sms": "src/" }
+    }
+}
