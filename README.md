@@ -1,7 +1,7 @@
-Cubalider SMS Queue
+Muchacuba SMS Queue
 ===================
 
-This library is an implementation of `cubalider/sms-queue` using `doctrine\orm`
+This library is an implementation of `cubalider/sms-queue` using `doctrine/orm`
 for persistence.
 
 ```
