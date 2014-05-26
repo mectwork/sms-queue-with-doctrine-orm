@@ -1,10 +1,10 @@
 <?php
 
-namespace Muchacuba\Component\Sms\Manager;
+namespace Cubalider\Component\Sms\Manager;
 
 use Cubalider\Component\Sms\Manager\BulkManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Muchacuba\Component\Sms\Entity\BulkInterface;
+use Cubalider\Component\Sms\Entity\BulkInterface;
 
 /**
  * @author Yosmany Garcia <yosmanyga@gmail.com>
@@ -36,7 +36,7 @@ class BulkManager implements BulkManagerInterface
      */
     public function __construct(
         EntityManagerInterface $em,
-        $class = 'Muchacuba\Component\Sms\Entity\Bulk'
+        $class = 'Cubalider\Component\Sms\Entity\Bulk'
     )
     {
         $this->em = $em;

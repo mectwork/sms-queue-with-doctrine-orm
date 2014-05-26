@@ -1,8 +1,8 @@
 <?php
 
-namespace Muchacuba\Test\Component\Sms\Entity;
+namespace Cubalider\Test\Component\Sms\Entity;
 
-use Muchacuba\Component\Sms\Entity\Bulk;
+use Cubalider\Component\Sms\Entity\Bulk;
 
 /**
  * @author Yusliel Garcia <yuslielg@gmail.com>
@@ -10,7 +10,7 @@ use Muchacuba\Component\Sms\Entity\Bulk;
 class BulkTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @covers \Muchacuba\Component\Sms\Entity\Bulk::getId
+     * @covers \Cubalider\Component\Sms\Entity\Bulk::getId
      */
     public function testId()
     {
@@ -20,8 +20,8 @@ class BulkTest extends \PHPUnit_Framework_TestCase
 
     
     /**
-     * @covers \Muchacuba\Component\Sms\Entity\Bulk::setPosition
-     * @covers \Muchacuba\Component\Sms\Entity\Bulk::getPosition
+     * @covers \Cubalider\Component\Sms\Entity\Bulk::setPosition
+     * @covers \Cubalider\Component\Sms\Entity\Bulk::getPosition
      */
     public function testPosition()
     {

@@ -1,12 +1,12 @@
 <?php
 
-namespace Muchacuba\Component\Sms\Manager;
+namespace Cubalider\Component\Sms\Manager;
 
 use Cubalider\Component\Sms\Manager\MessageManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Muchacuba\Component\Sms\Entity\Bulk;
-use Muchacuba\Component\Sms\Entity\BulkInterface;
-use Muchacuba\Component\Sms\Entity\MessageInterface;
+use Cubalider\Component\Sms\Entity\Bulk;
+use Cubalider\Component\Sms\Entity\BulkInterface;
+use Cubalider\Component\Sms\Entity\MessageInterface;
 
 /**
  * @author Yosmany Garcia <yosmanyga@gmail.com>
@@ -39,7 +39,7 @@ class MessageManager implements MessageManagerInterface
      */
     public function __construct(
         EntityManagerInterface $em,
-        $class = 'Muchacuba\Component\Sms\Entity\Message'
+        $class = 'Cubalider\Component\Sms\Entity\Message'
     )
     {
         $this->em = $em;

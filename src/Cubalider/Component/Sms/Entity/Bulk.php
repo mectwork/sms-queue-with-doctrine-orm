@@ -1,6 +1,6 @@
 <?php
 
-namespace Muchacuba\Component\Sms\Entity;
+namespace Cubalider\Component\Sms\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;

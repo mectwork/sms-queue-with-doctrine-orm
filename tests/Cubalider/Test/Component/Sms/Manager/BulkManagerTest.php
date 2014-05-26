@@ -1,10 +1,10 @@
 <?php
 
-namespace Muchacuba\Test\Component\Sms\Manager;
+namespace Cubalider\Test\Component\Sms\Manager;
 
-use Muchacuba\Component\Sms\Manager\BulkManager;
-use Muchacuba\Test\Component\Sms\EntityManagerBuilder;
-use Muchacuba\Component\Sms\Entity\Bulk;
+use Cubalider\Component\Sms\Manager\BulkManager;
+use Cubalider\Test\Component\Sms\EntityManagerBuilder;
+use Cubalider\Component\Sms\Entity\Bulk;
 use Doctrine\ORM\EntityManager;
 use Gedmo\Sortable\SortableListener;
 
@@ -23,27 +23,27 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
         $builder = new EntityManagerBuilder();
         $this->em = $builder->createEntityManager(
             array(
-                'Muchacuba\Component\Sms\Entity\Bulk',
-                'Muchacuba\Component\Sms\Entity\Message',
-                'Muchacuba\Component\Mobile\Entity\Mobile'
+                'Cubalider\Component\Sms\Entity\Bulk',
+                'Cubalider\Component\Sms\Entity\Message',
+                'Cubalider\Component\Mobile\Entity\Mobile'
             ),
             array(
                 new SortableListener()
             ),
             array(
-                'Muchacuba\Component\Sms\Entity\BulkInterface' => 'Muchacuba\Component\Sms\Entity\Bulk',
-                'Muchacuba\Component\Sms\Entity\MessageInterface' => 'Muchacuba\Component\Sms\Entity\Message',
-                'Muchacuba\Component\Mobile\Entity\MobileInterface' => 'Muchacuba\Component\Mobile\Entity\Mobile',
+                'Cubalider\Component\Sms\Entity\BulkInterface' => 'Cubalider\Component\Sms\Entity\Bulk',
+                'Cubalider\Component\Sms\Entity\MessageInterface' => 'Cubalider\Component\Sms\Entity\Message',
+                'Cubalider\Component\Mobile\Entity\MobileInterface' => 'Cubalider\Component\Mobile\Entity\Mobile',
             )
         );
     }
 
     /**
-     * @covers \Muchacuba\Component\Sms\Manager\BulkManager::__construct
+     * @covers \Cubalider\Component\Sms\Manager\BulkManager::__construct
      */
     public function testConstructor()
     {
-        $class = 'Muchacuba\Component\Sms\Entity\Bulk';
+        $class = 'Cubalider\Component\Sms\Entity\Bulk';
         $metadata = $this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadata');
         $metadata->expects($this->once())->method('getName')->will($this->returnValue($class));
         $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
@@ -53,11 +53,11 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertAttributeEquals($em, 'em', $manager);
         $this->assertAttributeEquals($class, 'class', $manager);
-        $this->assertAttributeEquals($em->getRepository('Muchacuba\Component\Sms\Entity\Bulk'), 'repository', $manager);
+        $this->assertAttributeEquals($em->getRepository('Cubalider\Component\Sms\Entity\Bulk'), 'repository', $manager);
     }
     
     /**
-     * @covers \Muchacuba\Component\Sms\Manager\BulkManager::pop
+     * @covers \Cubalider\Component\Sms\Manager\BulkManager::pop
      */
     public function testPop()
     {
@@ -74,7 +74,7 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
         $manager = new BulkManager($this->em);
         $this->assertEquals($bulk1, $manager->pop());
 
-        $repository = $this->em->getRepository('Muchacuba\Component\Sms\Entity\Bulk');
+        $repository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Bulk');
         $this->assertEquals(1, count($repository->findAll()));
     }
 }

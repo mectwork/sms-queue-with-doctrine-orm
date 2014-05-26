@@ -1,8 +1,8 @@
 <?php
 
-namespace Muchacuba\Component\Sms\Entity;
+namespace Cubalider\Component\Sms\Entity;
 
-use Muchacuba\Component\Mobile\Entity\MobileInterface;
+use Cubalider\Component\Mobile\Entity\MobileInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -22,13 +22,13 @@ class Message implements MessageInterface
 
     /**
      * @var MobileInterface
-     * @ORM\ManyToOne(targetEntity="Muchacuba\Component\Mobile\Entity\MobileInterface")
+     * @ORM\ManyToOne(targetEntity="Cubalider\Component\Mobile\Entity\MobileInterface")
      */
     protected $receiver;
 
     /**
      * @var MobileInterface
-     * @ORM\ManyToOne(targetEntity="Muchacuba\Component\Mobile\Entity\MobileInterface")
+     * @ORM\ManyToOne(targetEntity="Cubalider\Component\Mobile\Entity\MobileInterface")
      */
     protected $sender;
 
@@ -40,7 +40,7 @@ class Message implements MessageInterface
 
     /**
      * @var BulkInterface
-     * @ORM\ManyToOne(targetEntity="Muchacuba\Component\Sms\Entity\BulkInterface")
+     * @ORM\ManyToOne(targetEntity="Cubalider\Component\Sms\Entity\BulkInterface")
      */
     protected $bulk;
 

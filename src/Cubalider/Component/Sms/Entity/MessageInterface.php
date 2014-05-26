@@ -1,8 +1,8 @@
 <?php
 
-namespace Muchacuba\Component\Sms\Entity;
+namespace Cubalider\Component\Sms\Entity;
 
-use Muchacuba\Component\Mobile\Entity\MobileInterface;
+use Cubalider\Component\Mobile\Entity\MobileInterface;
 
 /**
  * @author Yosmany Garcia <yosmanyga@gmail.com>

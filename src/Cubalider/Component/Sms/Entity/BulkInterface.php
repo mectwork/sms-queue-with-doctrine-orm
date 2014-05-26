@@ -1,6 +1,6 @@
 <?php
 
-namespace Muchacuba\Component\Sms\Entity;
+namespace Cubalider\Component\Sms\Entity;
 
 /**
  * @author Yosmany Garcia <yosmanyga@gmail.com>

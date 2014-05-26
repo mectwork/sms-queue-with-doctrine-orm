@@ -1,12 +1,12 @@
 <?php
 
-namespace Muchacuba\Test\Component\Sms\Manager;
+namespace Cubalider\Test\Component\Sms\Manager;
 
-use Muchacuba\Test\Component\Sms\EntityManagerBuilder;
-use Muchacuba\Component\Sms\Manager\MessageManager;
-use Muchacuba\Component\Sms\Manager\BulkManager;
-use Muchacuba\Component\Sms\Entity\Message;
-use Muchacuba\Component\Sms\Entity\Bulk;
+use Cubalider\Test\Component\Sms\EntityManagerBuilder;
+use Cubalider\Component\Sms\Manager\MessageManager;
+use Cubalider\Component\Sms\Manager\BulkManager;
+use Cubalider\Component\Sms\Entity\Message;
+use Cubalider\Component\Sms\Entity\Bulk;
 use Doctrine\ORM\EntityManager;
 
 /**
@@ -25,26 +25,26 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
         $builder = new EntityManagerBuilder();
         $this->em = $builder->createEntityManager(
             array(
-                'Muchacuba\Component\Sms\Entity\Bulk',
-                'Muchacuba\Component\Sms\Entity\Message'
+                'Cubalider\Component\Sms\Entity\Bulk',
+                'Cubalider\Component\Sms\Entity\Message'
             ),
             array(
                 
             ),
             array(
-                'Muchacuba\Component\Sms\Entity\BulkInterface' => 'Muchacuba\Component\Sms\Entity\Bulk',
-                'Muchacuba\Component\Sms\Entity\MessageInterface' => 'Muchacuba\Component\Sms\Entity\Message',
-                'Muchacuba\Component\Mobile\Entity\MobileInterface' => 'Muchacuba\Component\Mobile\Entity\Mobile'
+                'Cubalider\Component\Sms\Entity\BulkInterface' => 'Cubalider\Component\Sms\Entity\Bulk',
+                'Cubalider\Component\Sms\Entity\MessageInterface' => 'Cubalider\Component\Sms\Entity\Message',
+                'Cubalider\Component\Mobile\Entity\MobileInterface' => 'Cubalider\Component\Mobile\Entity\Mobile'
             )
         );
     }
     
     /**
-     * @covers \Muchacuba\Component\Sms\Manager\MessageManager::__construct
+     * @covers \Cubalider\Component\Sms\Manager\MessageManager::__construct
      */
     public function testConstructor()
     {
-        $class = 'Muchacuba\Component\Sms\Entity\Message';
+        $class = 'Cubalider\Component\Sms\Entity\Message';
         $metadata = $this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadata');
         $metadata->expects($this->once())->method('getName')->will($this->returnValue($class));
         $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
@@ -54,11 +54,11 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertAttributeEquals($em, 'em', $manager);
         $this->assertAttributeEquals($class, 'class', $manager);
-        $this->assertAttributeEquals($em->getRepository('Muchacuba\Component\Sms\Entity\Message'), 'repository', $manager);
+        $this->assertAttributeEquals($em->getRepository('Cubalider\Component\Sms\Entity\Message'), 'repository', $manager);
     }
     
     /**
-     * @covers \Muchacuba\Component\Sms\Manager\MessageManager::push
+     * @covers \Cubalider\Component\Sms\Manager\MessageManager::push
      */
     public function testPush()
     {
@@ -75,30 +75,30 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
         $messageManager = new MessageManager($this->em);
         $messageManager->push(array($message1, $message2));
         
-        $bulkRepository = $this->em->getRepository('Muchacuba\Component\Sms\Entity\Bulk');
+        $bulkRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Bulk');
         $bulks = $bulkRepository->findAll();
         $this->assertEquals(1, count($bulks));
         
-        $messageRepository = $this->em->getRepository('Muchacuba\Component\Sms\Entity\Message');
+        $messageRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Message');
         $this->assertEquals(2, count($messageRepository->findAll()));        
         
         $this->assertEquals($message1->getBulk(), $bulks[0]);
     }
 
     /**
-     * @covers \Muchacuba\Component\Sms\Manager\MessageManager::push
+     * @covers \Cubalider\Component\Sms\Manager\MessageManager::push
      */
     public function testPushEmptyArray()
     {
         $messageManager = new MessageManager($this->em);
-        $messageRepository = $this->em->getRepository('Muchacuba\Component\Sms\Entity\Message');
+        $messageRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Message');
 
         $messageManager->push(array());
         $this->assertEquals(0, count($messageRepository->findAll()));
     }
     
     /**
-     * @covers \Muchacuba\Component\Sms\Manager\MessageManager::pop
+     * @covers \Cubalider\Component\Sms\Manager\MessageManager::pop
      */
     public function testPop()
     {
@@ -138,12 +138,12 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(array($message1, $message2, $message4), $messageManager->pop($bulk1));
 
-        $messageRepository = $this->em->getRepository('Muchacuba\Component\Sms\Entity\Message');
+        $messageRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Message');
         $this->assertEquals(1, count($messageRepository->findAll()));
     }
 
     /**
-     * @covers \Muchacuba\Component\Sms\Manager\MessageManager::pop
+     * @covers \Cubalider\Component\Sms\Manager\MessageManager::pop
      */
     public function testPopWithAmount()
     {
@@ -185,7 +185,7 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers \Muchacuba\Component\Sms\Manager\MessageManager::pop
+     * @covers \Cubalider\Component\Sms\Manager\MessageManager::pop
      */
     public function testPopWithNoMoreMessages()
     {
@@ -209,7 +209,7 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
         $messageManager = new MessageManager($this->em);
         $this->assertFalse($messageManager->pop($bulk2));
 
-        $bulkRepository = $this->em->getRepository('Muchacuba\Component\Sms\Entity\Bulk');
+        $bulkRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Bulk');
         $this->assertEquals(1, count($bulkRepository->findAll()));
     }
 }
