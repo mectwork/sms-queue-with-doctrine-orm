@@ -28,15 +28,15 @@ $messageManager->push($messages2);
 
 $bulk = $bulkManager->pop();
 $messages = $messageManager->pop($bulk, 2);
-// $messages is array($message1.1, $message1.2)
+// $messages is array(["Message 1.1"], ["Message 1.2"])
 
 $messages = $messageManager->pop($bulk, 2);
-// $messages is array($message1.3)
+// $messages is array(["Message 1.3"])
 
 $messages = $messageManager->pop($bulk, 2);
 // $messages is false
 
 $bulk = $bulkManager->pop();
 $messages = $messageManager->pop($bulk);
-// $messages is array($message2.1, $message2.2, $message2.3)
+// $messages is array(["Message 2.1"], ["Message 2.2"], ["Message 2.3"])
 ```
