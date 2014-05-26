@@ -18,7 +18,7 @@
     </testsuites>
     <filter>
         <whitelist>
-            <directory>./src/Cubalider/</directory>
+            <directory>./src/Muchacuba/</directory>
         </whitelist>
     </filter>
 </phpunit>
