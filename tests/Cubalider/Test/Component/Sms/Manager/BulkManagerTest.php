@@ -55,7 +55,41 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertAttributeEquals($class, 'class', $manager);
         $this->assertAttributeEquals($em->getRepository('Cubalider\Component\Sms\Entity\Bulk'), 'repository', $manager);
     }
-    
+
+    /**
+     * @covers \Cubalider\Component\Sms\Manager\BulkManager::push
+     */
+    public function testPush()
+    {
+        /* Tests */
+
+        $bulk1 = new Bulk();
+        $manager = new BulkManager($this->em);
+        $manager->push($bulk1);
+
+        $repository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Bulk');
+        $this->assertEquals(1, count($repository->findAll()));
+    }
+
+    /**
+     * @covers \Cubalider\Component\Sms\Manager\BulkManager::approach
+     */
+    public function testApproach()
+    {
+        /* Fixtures */
+
+        $bulk1 = new Bulk();
+        $this->em->persist($bulk1);
+        $bulk2 = new Bulk();
+        $this->em->persist($bulk2);
+        $this->em->flush();
+
+        /* Tests */
+
+        $manager = new BulkManager($this->em);
+        $this->assertEquals($bulk1, $manager->approach());
+    }
+
     /**
      * @covers \Cubalider\Component\Sms\Manager\BulkManager::pop
      */
@@ -72,7 +106,7 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
         /* Tests */
 
         $manager = new BulkManager($this->em);
-        $this->assertEquals($bulk1, $manager->pop());
+        $manager->pop();
 
         $repository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Bulk');
         $this->assertEquals(1, count($repository->findAll()));
