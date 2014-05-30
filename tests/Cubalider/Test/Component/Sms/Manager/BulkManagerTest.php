@@ -58,6 +58,24 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Cubalider\Component\Sms\Manager\BulkManager::push
+     * @expectedException \InvalidArgumentException
+     */
+    public function testPushWithInvalidClass()
+    {
+        $metadata = $this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadata');
+        $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
+
+        $em->expects($this->once())->method('getRepository');
+        $em->expects($this->once())->method('getClassMetadata')->will($this->returnValue($metadata));
+        $metadata->expects($this->once())->method('getName')->will($this->returnValue('stdClass'));
+        /** @var \Doctrine\ORM\EntityManagerInterface $em */
+
+        $manager = new BulkManager($em);
+        $manager->push(new Bulk());
+    }
+
+    /**
+     * @covers \Cubalider\Component\Sms\Manager\BulkManager::push
      */
     public function testPush()
     {
@@ -73,6 +91,7 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Cubalider\Component\Sms\Manager\BulkManager::approach
+     * @covers \Cubalider\Component\Sms\Manager\BulkManager::getFirst
      */
     public function testApproach()
     {
@@ -92,6 +111,7 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Cubalider\Component\Sms\Manager\BulkManager::pop
+     * @covers \Cubalider\Component\Sms\Manager\BulkManager::getFirst
      */
     public function testPop()
     {

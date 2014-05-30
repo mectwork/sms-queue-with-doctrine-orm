@@ -55,7 +55,7 @@ class BulkManager implements BulkManagerInterface
         $class = $this->class;
         $bulk = new $class;
         if (!$bulk instanceof BulkInterface) {
-            throw new \InvalidArgumentException(sprintf('Class %s must implement Cubalider\Component\Sms\Entity\BulkInterface'), $class);
+            throw new \InvalidArgumentException(sprintf('Class %s must implement Cubalider\Component\Sms\Entity\BulkInterface', $class));
         }
 
         $this->em->persist($bulk);

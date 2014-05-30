@@ -2,6 +2,8 @@
 
 namespace Cubalider\Test\Component\Sms\Manager;
 
+use Cubalider\Component\Mobile\Entity\Mobile;
+use Cubalider\Component\Sms\Entity\MessageInterface;
 use Cubalider\Test\Component\Sms\EntityManagerBuilder;
 use Cubalider\Component\Sms\Manager\MessageManager;
 use Cubalider\Component\Sms\Manager\BulkManager;
@@ -26,7 +28,8 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
         $this->em = $builder->createEntityManager(
             array(
                 'Cubalider\Component\Sms\Entity\Bulk',
-                'Cubalider\Component\Sms\Entity\Message'
+                'Cubalider\Component\Sms\Entity\Message',
+                'Cubalider\Component\Mobile\Entity\Mobile'
             ),
             array(
                 
@@ -38,25 +41,68 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
             )
         );
     }
-    
+
     /**
      * @covers \Cubalider\Component\Sms\Manager\MessageManager::__construct
      */
-    public function testConstructor()
+    public function testConstructorWithDefaultValues()
     {
-        $class = 'Cubalider\Component\Sms\Entity\Message';
-        $metadata = $this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadata');
-        $metadata->expects($this->once())->method('getName')->will($this->returnValue($class));
+        $messageClass = 'Cubalider\Component\Sms\Entity\Message';
+        $messageMetadata = $this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadata');
+        $bulkClass = 'Cubalider\Component\Sms\Entity\Bulk';
+        $bulkMetadata = $this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadata');
         $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
-        $em->expects($this->once())->method('getClassMetadata')->with($class)->will($this->returnValue($metadata));
+
+        $em->expects($this->at(0))->method('getRepository')->with($messageClass)->will($this->returnValue('r'));
+        $em->expects($this->at(1))->method('getClassMetadata')->with($messageClass)->will($this->returnValue($messageMetadata));
+        $messageMetadata->expects($this->once())->method('getName')->will($this->returnValue('c'));
+        $em->expects($this->at(2))->method('getRepository')->with($bulkClass);
+        $em->expects($this->at(3))->method('getClassMetadata')->with($bulkClass)->will($this->returnValue($bulkMetadata));
+        $bulkMetadata->expects($this->once())->method('getName');
+
         /** @var \Doctrine\ORM\EntityManagerInterface $em */
-        $manager = new MessageManager($em, $class);
+        $manager = new MessageManager($em);
 
         $this->assertAttributeEquals($em, 'em', $manager);
-        $this->assertAttributeEquals($class, 'class', $manager);
-        $this->assertAttributeEquals($em->getRepository('Cubalider\Component\Sms\Entity\Message'), 'repository', $manager);
+        $this->assertAttributeEquals('r', 'repository', $manager);
+        $this->assertAttributeEquals('c', 'class', $manager);
     }
-    
+
+    /**
+     * @covers \Cubalider\Component\Sms\Manager\MessageManager::__construct
+     */
+    public function testConstructorWithValues()
+    {
+        $messageClass = 'Foo';
+        $messageMetadata = $this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadata');
+        $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
+        $bulkManager = $this->getMock('Cubalider\Component\Sms\Manager\BulkManagerInterface');
+
+        $em->expects($this->once())->method('getRepository')->with($messageClass);
+        $em->expects($this->once())->method('getClassMetadata')->with($messageClass)->will($this->returnValue($messageMetadata));
+        $messageMetadata->expects($this->once())->method('getName');
+
+        /** @var \Doctrine\ORM\EntityManagerInterface $em */
+        /** @var \Cubalider\Component\Sms\Manager\BulkManagerInterface $bulkManager */
+        $manager = new MessageManager($em, $messageClass, $bulkManager);
+
+        $this->assertAttributeEquals($bulkManager, 'bulkManager', $manager);
+    }
+
+    /**
+     * @covers \Cubalider\Component\Sms\Manager\MessageManager::push
+     */
+    public function testPushWithEmptyArray()
+    {
+        $messageManager = new MessageManager($this->em);
+        $messageRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Message');
+        $bulkRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Bulk');
+
+        $this->assertFalse($messageManager->push(array()));
+        $this->assertEquals(0, count($messageRepository->findAll()));
+        $this->assertEquals(0, count($bulkRepository->findAll()));
+    }
+
     /**
      * @covers \Cubalider\Component\Sms\Manager\MessageManager::push
      */
@@ -64,41 +110,68 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
     {
         /* Fixtures */
 
+        $mobile = new Mobile();
+        $mobile->setNumber('123');
+        $this->em->persist($mobile);
+        $this->em->flush();
+
         $message1 = new Message();
+        $message1->setSender($mobile);
+        $message1->setReceiver($mobile);
         $message1->setText('Message 1');
-        
+
         $message2 = new Message();
-        $message2->setText('Message 1');
-        
+        $message2->setSender($mobile);
+        $message2->setReceiver($mobile);
+        $message2->setText('Message 2');
+
         /* Tests */
-        
+
         $messageManager = new MessageManager($this->em);
         $messageManager->push(array($message1, $message2));
-        
+
         $bulkRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Bulk');
         $bulks = $bulkRepository->findAll();
         $this->assertEquals(1, count($bulks));
-        
+
         $messageRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Message');
-        $this->assertEquals(2, count($messageRepository->findAll()));        
-        
-        $this->assertEquals($message1->getBulk(), $bulks[0]);
+        /** @var MessageInterface[] $messages */
+        $messages = $messageRepository->findAll();
+        $this->assertEquals(2, count($messages));
+
+        $this->assertEquals($messages[0]->getBulk(), $bulks[0]);
     }
 
     /**
      * @covers \Cubalider\Component\Sms\Manager\MessageManager::push
+     * @expectedException \Exception
      */
-    public function testPushEmptyArray()
+    public function testPushWithInvalidMessage()
     {
-        $messageManager = new MessageManager($this->em);
-        $messageRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Message');
+        /* Fixtures */
 
-        $messageManager->push(array());
-        $this->assertEquals(0, count($messageRepository->findAll()));
+        $mobile = new Mobile();
+        $mobile->setNumber('123');
+        $this->em->persist($mobile);
+        $this->em->flush();
+
+        $message1 = new Message();
+        $message1->setSender($mobile);
+        $message1->setReceiver($mobile);
+        $message1->setText('Message 1');
+
+        $message2 = new Message();
+
+        /* Tests */
+
+        $messageManager = new MessageManager($this->em);
+        $messageManager->push(array($message1, $message2));
     }
-    
+
     /**
      * @covers \Cubalider\Component\Sms\Manager\MessageManager::pop
+     * @covers \Cubalider\Component\Sms\Manager\MessageManager::findMessages
+     * @covers \Cubalider\Component\Sms\Manager\MessageManager::removeMessages
      */
     public function testPop()
     {
@@ -119,7 +192,7 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
         $message2->setBulk($bulk1);
         $message2->setText('Message 2');
         $this->em->persist($message2);
-        
+
         $message3 = new Message();
         $message3->setBulk($bulk2);
         $message3->setText('Message 3');
@@ -135,81 +208,43 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
         /* Tests */
 
         $messageManager = new MessageManager($this->em);
-
-        $this->assertEquals(array($message1, $message2, $message4), $messageManager->pop($bulk1));
-
         $messageRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Message');
+        $bulkRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Bulk');
+
+        $this->assertEquals(array($message1, $message2), $messageManager->pop(2));
+        $this->assertEquals(2, count($messageRepository->findAll()));
+        $this->assertEquals(array($message4), $messageManager->pop(2));
         $this->assertEquals(1, count($messageRepository->findAll()));
+        $this->assertEquals(array(), $messageManager->pop(2));
+        $this->assertEquals(1, count($bulkRepository->findAll()));
     }
 
     /**
-     * @covers \Cubalider\Component\Sms\Manager\MessageManager::pop
+     * @covers \Cubalider\Component\Sms\Manager\MessageManager::estimate
      */
-    public function testPopWithAmount()
+    public function testEstimate()
     {
         /* Fixtures */
 
-        $bulk1 = new Bulk();
-        $this->em->persist($bulk1);
-
-        $bulk2 = new Bulk();
-        $this->em->persist($bulk2);
+        $bulk = new Bulk();
+        $this->em->persist($bulk);
 
         $message1 = new Message();
-        $message1->setBulk($bulk1);
+        $message1->setBulk($bulk);
         $message1->setText('Message 1');
         $this->em->persist($message1);
 
         $message2 = new Message();
-        $message2->setBulk($bulk1);
+        $message2->setBulk($bulk);
         $message2->setText('Message 2');
         $this->em->persist($message2);
 
-        $message3 = new Message();
-        $message3->setBulk($bulk1);
-        $message3->setText('Message 3');
-        $this->em->persist($message3);
-
-        $message4 = new Message();
-        $message4->setBulk($bulk2);
-        $message4->setText('Message 4');
-        $this->em->persist($message4);
-
         $this->em->flush();
 
         /* Tests */
 
         $messageManager = new MessageManager($this->em);
-
-        $this->assertEquals(array($message1, $message2), $messageManager->pop($bulk1, 2));
+        $this->assertEquals(2, $messageManager->estimate($bulk));
     }
 
-    /**
-     * @covers \Cubalider\Component\Sms\Manager\MessageManager::pop
-     */
-    public function testPopWithNoMoreMessages()
-    {
-        /* Fixtures */
-
-        $bulk1 = new Bulk();
-        $this->em->persist($bulk1);
-
-        $bulk2 = new Bulk();
-        $this->em->persist($bulk2);
-
-        $message1 = new Message();
-        $message1->setBulk($bulk1);
-        $message1->setText('Message 1');
-        $this->em->persist($message1);
-
-        $this->em->flush();
-
-        /* Tests */
-
-        $messageManager = new MessageManager($this->em);
-        $this->assertFalse($messageManager->pop($bulk2));
-
-        $bulkRepository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Bulk');
-        $this->assertEquals(1, count($bulkRepository->findAll()));
-    }
 }
