@@ -245,6 +245,12 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
 
         $messageManager = new MessageManager($this->em);
         $this->assertEquals(2, $messageManager->estimate($bulk));
+        $messageManager->pop(1);
+        $this->assertEquals(1, $messageManager->estimate($bulk));
+        $messageManager->pop(1);
+        $this->assertEquals(0, $messageManager->estimate($bulk));
+        $messageManager->pop(1);
+        $this->assertEquals(false, $messageManager->estimate($bulk));
     }
 
 }

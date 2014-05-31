@@ -5,6 +5,7 @@ namespace Cubalider\Component\Sms\Manager;
 use Doctrine\ORM\EntityManagerInterface;
 use Cubalider\Component\Sms\Entity\BulkInterface;
 use Cubalider\Component\Sms\Entity\MessageInterface;
+use Doctrine\ORM\ORMInvalidArgumentException;
 
 /**
  * @author Yosmany Garcia <yosmanyga@gmail.com>
@@ -134,9 +135,15 @@ class MessageManager implements MessageManagerInterface
             "SELECT COUNT(M) FROM %s M WHERE M.bulk = :bulk", $this->class
         ));
 
-        return $query
-            ->setParameter('bulk', $bulk)
-            ->getSingleScalarResult();
+        try {
+            $count = $query
+                ->setParameter('bulk', $bulk)
+                ->getSingleScalarResult();
+        } catch (ORMInvalidArgumentException $e) {
+            $count = false;
+        }
+
+        return $count;
     }
 
     /**
