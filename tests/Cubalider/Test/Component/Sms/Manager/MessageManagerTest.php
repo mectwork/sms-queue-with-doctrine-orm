@@ -181,8 +181,8 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
         $em->expects($this->once())->method('getClassMetadata')->will($this->returnValue($metadata));
         $metadata->expects($this->once())->method('getName')->will($this->returnValue('stdClass'));
          
-        $manager = new MessageManager($em);
-        $manager->push(array(new Message()));
+        $manager = new MessageManager($em, 'stdClass', new BulkManager($this->em));
+        $manager->push(array(new \stdClass()));
     }
 
     /**
@@ -269,5 +269,4 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
         $messageManager->pop(1);
         $this->assertEquals(false, $messageManager->estimate($bulk));
     }
-
 }
