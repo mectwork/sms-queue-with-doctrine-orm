@@ -74,8 +74,16 @@ class MessageManager implements MessageManagerInterface
 
             $class = $this->class;
             foreach ($messages as $message) {
+                if (!$message instanceof MessageInterface) {
+                    throw new \InvalidArgumentException(sprintf('Class %s must implement Cubalider\Component\Sms\Entity\MessageInterface', get_class($message)));
+                }
+                
                 /** @var MessageInterface $internalMessage */
                 $internalMessage = new $class;
+                if (!$internalMessage instanceof MessageInterface) {
+                    throw new \InvalidArgumentException(sprintf('Class %s must implement Cubalider\Component\Sms\Entity\MessageInterface', $class));
+                }
+                
                 $internalMessage->setBulk($bulk);
                 $internalMessage->setSender($message->getSender());
                 $internalMessage->setReceiver($message->getReceiver());
@@ -172,6 +180,10 @@ class MessageManager implements MessageManagerInterface
     private function removeMessages($messages)
     {
         foreach ($messages as $message) {
+            if (!$message instanceof MessageInterface) {
+                throw new \InvalidArgumentException(sprintf('Class %s must implement Cubalider\Component\Sms\Entity\MessageInterface', get_class($message)));
+            }
+                
             $this->em->remove($message);
         }
     }
