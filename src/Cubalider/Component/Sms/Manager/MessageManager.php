@@ -59,6 +59,8 @@ class MessageManager implements MessageManagerInterface
      *
      * @api
      * @param MessageInterface[] $messages
+     * @throws \InvalidArgumentException if class doest'n implements MessageInterface
+     * @throws \InvalidArgumentException if message item doenst' implements MessageInterface
      * @throws \Exception if there is any problem with the transaction
      * @return BulkInterface|false
      */
