@@ -172,7 +172,7 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
      * @covers \Cubalider\Component\Sms\Manager\MessageManager::push
      * @expectedException \InvalidArgumentException
      */
-    public function testPushWithInvalidClass()
+    public function testPushWithInvalidClassInConstruct()
     {
         $metadata = $this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadata');
         $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
@@ -182,6 +182,23 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
         $metadata->expects($this->once())->method('getName')->will($this->returnValue('stdClass'));
          
         $manager = new MessageManager($em, 'stdClass', new BulkManager($this->em));
+        $manager->push(array(new Message()));
+    }
+
+    /**
+     * @covers \Cubalider\Component\Sms\Manager\MessageManager::push
+     * @expectedException \InvalidArgumentException
+     */
+    public function testPushWithInvalidClassInMessages()
+    {
+        $metadata = $this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadata');
+        $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
+
+        $em->expects($this->once())->method('getRepository');
+        $em->expects($this->once())->method('getClassMetadata')->will($this->returnValue($metadata));
+        $metadata->expects($this->once())->method('getName')->will($this->returnValue('stdClass'));
+
+        $manager = new MessageManager($em, 'Cubalider\Component\Sms\Entity\Message', new BulkManager($this->em));
         $manager->push(array(new \stdClass()));
     }
 
