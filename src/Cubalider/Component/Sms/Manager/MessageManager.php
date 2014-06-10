@@ -59,6 +59,8 @@ class MessageManager implements MessageManagerInterface
      *
      * @api
      * @param MessageInterface[] $messages
+     * @throws \InvalidArgumentException if class doesn't implements MessageInterface
+     * @throws \InvalidArgumentException if message item doesn't implements MessageInterface
      * @throws \Exception if there is any problem with the transaction
      * @return BulkInterface|false
      */
@@ -74,8 +76,15 @@ class MessageManager implements MessageManagerInterface
 
             $class = $this->class;
             foreach ($messages as $message) {
+                if (!$message instanceof MessageInterface) {
+                    throw new \InvalidArgumentException(sprintf('Class %s must implement Cubalider\Component\Sms\Entity\MessageInterface', get_class($message)));
+                }
                 /** @var MessageInterface $internalMessage */
                 $internalMessage = new $class;
+                if (!$internalMessage instanceof MessageInterface) {
+                    throw new \InvalidArgumentException(sprintf('Class %s must implement Cubalider\Component\Sms\Entity\MessageInterface', $class));
+                }
+                
                 $internalMessage->setBulk($bulk);
                 $internalMessage->setSender($message->getSender());
                 $internalMessage->setReceiver($message->getReceiver());
@@ -123,7 +132,7 @@ class MessageManager implements MessageManagerInterface
 
     /**
      * Returns the amount of messages remaining for given bulk.
-     * It returns false if bulk doest' exist
+     * It returns false if bulk doesn't exist
      *
      * @param BulkInterface $bulk
      * @return int|false
