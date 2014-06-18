@@ -12,10 +12,13 @@
     ],
     "require": {
         "php": ">=5.3.0",
-        "cubalider/sms-queue-as-abstract": "0.2.*",
-        "cubalider/mobile-with-doctrine-orm": "0.2.*",
+        "cubalider/sms-queue-as-abstract": "0.3.*",
+        "cubalider/mobile-with-doctrine-orm": "0.3.*",
         "doctrine/orm": "2.4.*",
         "gedmo/doctrine-extensions": "2.3.*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.1.*"
     },
     "autoload": {
         "psr-0": { "Cubalider\\Component\\Sms": "src/" }
