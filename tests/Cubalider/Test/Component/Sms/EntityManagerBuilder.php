@@ -2,39 +2,41 @@
 
 namespace Cubalider\Test\Component\Sms;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
 use Doctrine\ORM\Mapping\DefaultNamingStrategy;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Doctrine\ORM\Tools\ResolveTargetEntityListener;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Configuration;
 
-/**
- * @author Yosmany Garcia <yosmanyga@gmail.com>
- */
 class EntityManagerBuilder
 {
     /**
      * Creates entity manager
      *
+     * @param array $mappings
      * @param array $entities
      * @param array $listeners
      * @param array $targetEntities
      * @return EntityManager
      */
-    public function createEntityManager($entities = array(), $listeners = array(), $targetEntities = array())
+    public function createEntityManager(
+        $mappings = array(),
+        $entities = array(),
+        $listeners = array(),
+        $targetEntities = array()
+    )
     {
         $conn = array(
             'driver' => 'pdo_sqlite',
             'memory' => true,
         );
 
-        $config = $this->createConfig();
+        $config = $this->createConfig($mappings);
 
         $evm = $this->createEventManager($listeners, $targetEntities);
 
@@ -57,16 +59,17 @@ class EntityManagerBuilder
     /**
      * Creates configuration
      *
+     * @param array $mappings
      * @return \Doctrine\ORM\Configuration
      */
-    private function createConfig()
+    private function createConfig($mappings)
     {
         $config = new Configuration();
         $config->setProxyDir(sys_get_temp_dir());
         $config->setProxyNamespace('Proxy');
         $config->setAutoGenerateProxyClasses(true);
         $config->setClassMetadataFactoryName('Doctrine\\ORM\\Mapping\\ClassMetadataFactory');
-        $config->setMetadataDriverImpl(new AnnotationDriver(new AnnotationReader()));
+        $config->setMetadataDriverImpl(new XmlDriver($mappings));
         $config->setDefaultRepositoryClassName('Doctrine\\ORM\\EntityRepository');
         $config->setQuoteStrategy(new DefaultQuoteStrategy());
         $config->setNamingStrategy(new DefaultNamingStrategy());

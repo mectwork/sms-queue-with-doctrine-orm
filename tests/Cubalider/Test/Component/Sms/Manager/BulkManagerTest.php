@@ -4,7 +4,7 @@ namespace Cubalider\Test\Component\Sms\Manager;
 
 use Cubalider\Component\Sms\Manager\BulkManager;
 use Cubalider\Test\Component\Sms\EntityManagerBuilder;
-use Cubalider\Component\Sms\Entity\Bulk;
+use Cubalider\Component\Sms\Model\Bulk;
 use Doctrine\ORM\EntityManager;
 use Gedmo\Sortable\SortableListener;
 
@@ -23,17 +23,13 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
         $builder = new EntityManagerBuilder();
         $this->em = $builder->createEntityManager(
             array(
-                'Cubalider\Component\Sms\Entity\Bulk',
-                'Cubalider\Component\Sms\Entity\Message',
-                'Cubalider\Component\Mobile\Entity\Mobile'
+                sprintf("%s/../../../../../../src/Cubalider/Component/Sms/Resources/config/doctrine", __DIR__)
+            ),
+            array(
+                'Cubalider\Component\Sms\Model\Bulk'
             ),
             array(
                 new SortableListener()
-            ),
-            array(
-                'Cubalider\Component\Sms\Entity\BulkInterface' => 'Cubalider\Component\Sms\Entity\Bulk',
-                'Cubalider\Component\Sms\Entity\MessageInterface' => 'Cubalider\Component\Sms\Entity\Message',
-                'Cubalider\Component\Mobile\Entity\MobileInterface' => 'Cubalider\Component\Mobile\Entity\Mobile',
             )
         );
     }
@@ -43,35 +39,10 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
      */
     public function testConstructor()
     {
-        $class = 'Cubalider\Component\Sms\Entity\Bulk';
-        $metadata = $this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadata');
-        $metadata->expects($this->once())->method('getName')->will($this->returnValue($class));
-        $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
-        $em->expects($this->once())->method('getClassMetadata')->with($class)->will($this->returnValue($metadata));
-        /** @var \Doctrine\ORM\EntityManagerInterface $em */
-        $manager = new BulkManager($em, $class);
+        $manager = new BulkManager($this->em);
 
-        $this->assertAttributeEquals($em, 'em', $manager);
-        $this->assertAttributeEquals($class, 'class', $manager);
-        $this->assertAttributeEquals($em->getRepository('Cubalider\Component\Sms\Entity\Bulk'), 'repository', $manager);
-    }
-
-    /**
-     * @covers \Cubalider\Component\Sms\Manager\BulkManager::push
-     * @expectedException \InvalidArgumentException
-     */
-    public function testPushWithInvalidClass()
-    {
-        $metadata = $this->getMock('Doctrine\Common\Persistence\Mapping\ClassMetadata');
-        $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
-
-        $em->expects($this->once())->method('getRepository');
-        $em->expects($this->once())->method('getClassMetadata')->will($this->returnValue($metadata));
-        $metadata->expects($this->once())->method('getName')->will($this->returnValue('stdClass'));
-        /** @var \Doctrine\ORM\EntityManagerInterface $em */
-
-        $manager = new BulkManager($em);
-        $manager->push(new Bulk());
+        $this->assertAttributeEquals($this->em, 'em', $manager);
+        $this->assertAttributeEquals($this->em->getRepository('Cubalider\Component\Sms\Model\Bulk'), 'repository', $manager);
     }
 
     /**
@@ -85,7 +56,7 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
         $manager = new BulkManager($this->em);
         $manager->push($bulk1);
 
-        $repository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Bulk');
+        $repository = $this->em->getRepository('Cubalider\Component\Sms\Model\Bulk');
         $this->assertEquals(1, count($repository->findAll()));
     }
 
@@ -128,7 +99,7 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
         $manager = new BulkManager($this->em);
         $manager->pop();
 
-        $repository = $this->em->getRepository('Cubalider\Component\Sms\Entity\Bulk');
+        $repository = $this->em->getRepository('Cubalider\Component\Sms\Model\Bulk');
         $this->assertEquals(1, count($repository->findAll()));
     }
 }
