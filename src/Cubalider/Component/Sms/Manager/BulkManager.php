@@ -22,7 +22,7 @@ class BulkManager implements BulkManagerInterface
 
     /**
      * Constructor.
-     * Additionally it creates a repository using $em, for given class
+     * Additionally it creates a repository using $em, for entity class
      *
      * @param EntityManagerInterface $em
      */

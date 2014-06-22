@@ -2,7 +2,7 @@
 
 namespace Cubalider\Component\Sms\Manager;
 
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityManager;
 use Cubalider\Component\Sms\Model\Bulk;
 use Cubalider\Component\Sms\Model\Message;
 use Doctrine\ORM\ORMInvalidArgumentException;
@@ -14,7 +14,7 @@ use Doctrine\ORM\ORMInvalidArgumentException;
 class MessageManager implements MessageManagerInterface
 {
     /**
-     * @var \Doctrine\ORM\EntityManagerInterface
+     * @var \Doctrine\ORM\EntityManager
      */
     private $em;
 
@@ -31,13 +31,13 @@ class MessageManager implements MessageManagerInterface
     /**
      * Constructor
      *
-     * Additionally it creates a repository using $em, for given class
+     * Additionally it creates a repository using $em, for entity class
      *
-     * @param EntityManagerInterface $em
+     * @param EntityManager $em
      * @param BulkManagerInterface   $bulkManager
      */
     public function __construct(
-        EntityManagerInterface $em,
+        EntityManager $em,
         BulkManagerInterface $bulkManager = null
     )
     {
