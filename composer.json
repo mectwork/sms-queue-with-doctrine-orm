@@ -1,6 +1,6 @@
 {
     "name": "cubalider/sms-queue-with-doctrine-orm",
-    "description": "Provides an implementation of cubalider/sms-queue-as-abstract using doctrine/orm for persistence",
+    "description": "This library is an implementation of cubalider/sms-queue-as-abstract using doctrine/orm for persistence",
     "type": "library",
     "keywords": ["sms", "queue"],
     "license": "MIT",
