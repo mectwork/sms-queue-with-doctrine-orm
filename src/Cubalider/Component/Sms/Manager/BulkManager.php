@@ -2,8 +2,12 @@
 
 namespace Cubalider\Component\Sms\Manager;
 
+use Cubalider\Component\Sms\Manager\Fit\FirstInQueueFit;
+use Cubalider\Component\Sms\Manager\Fit\OrderQueueFit;
 use Doctrine\ORM\EntityManagerInterface;
 use Cubalider\Component\Sms\Model\Bulk;
+use Yosmanyga\Component\Dql\Fit\AndFit;
+use Yosmanyga\Component\Dql\Fit\Builder;
 
 /**
  * @author Yosmany Garcia <yosmanyga@gmail.com>
@@ -11,25 +15,30 @@ use Cubalider\Component\Sms\Model\Bulk;
 class BulkManager implements BulkManagerInterface
 {
     /**
+     * @var string
+     */
+    private $class = 'Cubalider\Component\Sms\Model\Bulk';
+
+    /**
      * @var \Doctrine\ORM\EntityManagerInterface
      */
     private $em;
 
     /**
-     * @var \Doctrine\ORM\EntityRepository
+     * @var Builder;
      */
-    private $repository;
+    private $builder;
 
     /**
      * Constructor.
-     * Additionally it creates a repository using $em, for entity class
      *
      * @param EntityManagerInterface $em
+     * @param Builder $builder
      */
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(EntityManagerInterface $em, Builder $builder = null)
     {
         $this->em = $em;
-        $this->repository = $this->em->getRepository('Cubalider\Component\Sms\Model\Bulk');
+        $this->builder = $builder ? : new Builder($em);
     }
 
     /**
@@ -55,7 +64,7 @@ class BulkManager implements BulkManagerInterface
     /**
      * @inheritdoc
      */
-    public function pop() 
+    public function pop()
     {
         $bulk = $this->getFirst();
 
@@ -70,12 +79,22 @@ class BulkManager implements BulkManagerInterface
      *
      * @return Bulk|null
      */
+    /**
+     * Returns the bulk at first position.
+     *
+     * @return Bulk|null
+     */
     private function getFirst()
     {
-        return $this->repository
-            ->createQueryBuilder('G')
-            ->orderBy('G.position')
-            ->setMaxResults(1)
+        $qb = $this->builder->build(
+            $this->class,
+            new AndFit(array(
+                new OrderQueueFit(),
+                new FirstInQueueFit()
+            ))
+        );
+
+        return $qb
             ->getQuery()
             ->getOneOrNullResult();
     }

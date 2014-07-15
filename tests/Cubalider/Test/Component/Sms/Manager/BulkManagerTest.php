@@ -3,46 +3,49 @@
 namespace Cubalider\Test\Component\Sms\Manager;
 
 use Cubalider\Component\Sms\Manager\BulkManager;
-use Cubalider\Test\Component\Sms\EntityManagerBuilder;
+use Cubalider\Component\Sms\Manager\Fit\FirstInQueueFit;
+use Cubalider\Component\Sms\Manager\Fit\OrderQueueFit;
 use Cubalider\Component\Sms\Model\Bulk;
-use Doctrine\ORM\EntityManager;
+use Yosmanyga\Component\Dql\Fit\AndFit;
+use Yosmanyga\Component\Dql\Fit\Builder;
 use Gedmo\Sortable\SortableListener;
 
 /**
  * @author Yosmany Garcia <yosmanyga@gmail.com>
+ * @author Manuel Emilio Carpio <mectwork@gmail.com>
  */
 class BulkManagerTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @var EntityManager
-     */
-    protected $em;
-
-    public function setUp()
-    {
-        $builder = new EntityManagerBuilder();
-        $this->em = $builder->createEntityManager(
-            array(
-                realpath(sprintf("%s/../../../../../../src/Cubalider/Component/Sms/Resources/config/doctrine", __DIR__))
-            ),
-            array(
-                'Cubalider\Component\Sms\Model\Bulk'
-            ),
-            array(
-                new SortableListener()
-            )
-        );
-    }
-
     /**
      * @covers \Cubalider\Component\Sms\Manager\BulkManager::__construct
      */
     public function testConstructor()
     {
-        $manager = new BulkManager($this->em);
+        /** @var \Doctrine\ORM\EntityManager $em */
+        $em = $this->getMockBuilder('Doctrine\ORM\EntityManagerInterface')
+            ->getMock();
+        /** @var \Yosmanyga\Component\Dql\Fit\Builder $builder */
+        $builder = $this->getMockBuilder('Yosmanyga\Component\Dql\Fit\Builder')
+            ->setConstructorArgs(array($em))
+            ->getMock();
+        $manager = new BulkManager($em, $builder);
 
-        $this->assertAttributeEquals($this->em, 'em', $manager);
-        $this->assertAttributeEquals($this->em->getRepository('Cubalider\Component\Sms\Model\Bulk'), 'repository', $manager);
+        $this->assertAttributeEquals($em, 'em', $manager);
+        $this->assertAttributeEquals($builder, 'builder', $manager);
+    }
+
+    /**
+     * @covers \Cubalider\Component\Sms\Manager\BulkManager::__construct
+     */
+    public function testConstructorWithDefaultParameters()
+    {
+        /** @var \Doctrine\ORM\EntityManager $em */
+        $em = $this->getMockBuilder('Doctrine\ORM\EntityManagerInterface')
+            ->getMock();
+        /** @var \Doctrine\ORM\EntityManager $em */
+        $manager = new BulkManager($em);
+
+        $this->assertAttributeEquals(new Builder($em), 'builder', $manager);
     }
 
     /**
@@ -50,14 +53,19 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
      */
     public function testPush()
     {
-        /* Tests */
+        $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
+        $bulk = new Bulk();
+        /** @var \Doctrine\ORM\EntityManager $em */
+        $manager = new BulkManager($em);
 
-        $bulk1 = new Bulk();
-        $manager = new BulkManager($this->em);
-        $manager->push($bulk1);
+        /** @var \PHPUnit_Framework_MockObject_MockObject $em */
+        $em
+            ->expects($this->once())->method('persist')
+            ->with($bulk);
+        $em
+            ->expects($this->once())->method('flush');
 
-        $repository = $this->em->getRepository('Cubalider\Component\Sms\Model\Bulk');
-        $this->assertEquals(1, count($repository->findAll()));
+        $this->assertEquals($bulk, $manager->push($bulk));
     }
 
     /**
@@ -66,40 +74,143 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
      */
     public function testApproach()
     {
-        /* Fixtures */
+        $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
+        $builder = $this->getMockBuilder('Yosmanyga\Component\Dql\Fit\Builder')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $qb = $this->getMockBuilder('Doctrine\ORM\QueryBuilder')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $query = $this->getMockBuilder('Doctrine\ORM\AbstractQuery')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getOneOrNullResult'))
+            ->getMockForAbstractClass();
+        /** @var \Doctrine\ORM\EntityManager $em */
+        /** @var \Yosmanyga\Component\Dql\Fit\Builder $builder */
+        $manager = new BulkManager($em, $builder);
 
-        $bulk1 = new Bulk();
-        $this->em->persist($bulk1);
-        $bulk2 = new Bulk();
-        $this->em->persist($bulk2);
-        $this->em->flush();
+        /** @var \PHPUnit_Framework_MockObject_MockObject $builder */
+        $builder
+            ->expects($this->once())
+            ->method('build')
+            ->with(
+                'Cubalider\Component\Sms\Model\Bulk',
+                new AndFit(
+                    array(
+                        new OrderQueueFit(),
+                        new FirstInQueueFit()
+                    ))
+            )
+            ->will($this->returnValue($qb));
+        $qb
+            ->expects($this->once())
+            ->method('getQuery')
+            ->will($this->returnValue($query));
+        $query
+            ->expects($this->once())
+            ->method('getOneOrNullResult')
+            ->will($this->returnValue($bulk = new Bulk()));
 
-        /* Tests */
+        $this->assertEquals($bulk, $manager->approach());
+    }
 
-        $manager = new BulkManager($this->em);
-        $this->assertEquals($bulk1, $manager->approach());
+    /**
+     * @covers \Cubalider\Component\Sms\Manager\BulkManager::approach
+     * @covers \Cubalider\Component\Sms\Manager\BulkManager::getFirst
+     */
+    public function testApproachWithNullBulk()
+    {
+        $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
+        $builder = $this->getMockBuilder('Yosmanyga\Component\Dql\Fit\Builder')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $qb = $this->getMockBuilder('Doctrine\ORM\QueryBuilder')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $query = $this->getMockBuilder('Doctrine\ORM\AbstractQuery')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getOneOrNullResult'))
+            ->getMockForAbstractClass();
+        /** @var \Doctrine\ORM\EntityManager $em */
+        /** @var \Yosmanyga\Component\Dql\Fit\Builder $builder */
+        $manager = new BulkManager($em, $builder);
+
+        /** @var \PHPUnit_Framework_MockObject_MockObject $builder */
+        $builder
+            ->expects($this->once())
+            ->method('build')
+            ->with(
+                'Cubalider\Component\Sms\Model\Bulk',
+                new AndFit(
+                    array(
+                        new OrderQueueFit(),
+                        new FirstInQueueFit()
+                    ))
+            )
+            ->will($this->returnValue($qb));
+        $qb
+            ->expects($this->once())
+            ->method('getQuery')
+            ->will($this->returnValue($query));
+        $query
+            ->expects($this->once())
+            ->method('getOneOrNullResult')
+            ->will($this->returnValue(null));
+
+
+        $this->assertEquals(null, $manager->approach());
     }
 
     /**
      * @covers \Cubalider\Component\Sms\Manager\BulkManager::pop
      * @covers \Cubalider\Component\Sms\Manager\BulkManager::getFirst
      */
-    public function testPop()
+    public function tesPop()
     {
-        /* Fixtures */
+        $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
+        $builder = $this->getMockBuilder('Yosmanyga\Component\Dql\Fit\Builder')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $qb = $this->getMockBuilder('Doctrine\ORM\QueryBuilder')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $query = $this->getMockBuilder('Doctrine\ORM\AbstractQuery')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getOneOrNullResult'))
+            ->getMockForAbstractClass();
+        /** @var \Doctrine\ORM\EntityManager $em */
+        /** @var \Yosmanyga\Component\Dql\Fit\Builder $builder */
+        $manager = new BulkManager($em, $builder);
 
-        $bulk1 = new Bulk();
-        $this->em->persist($bulk1);
-        $bulk2 = new Bulk();
-        $this->em->persist($bulk2);
-        $this->em->flush();
+        /** @var \PHPUnit_Framework_MockObject_MockObject $builder */
+        $builder
+            ->expects($this->once())
+            ->method('build')
+            ->with(
+                'Cubalider\Component\Sms\Model\Bulk',
+                new AndFit(
+                    array(
+                        new OrderQueueFit(),
+                        new FirstInQueueFit()
+                    ))
+            )
+            ->will($this->returnValue($qb));
+        $qb
+            ->expects($this->once())
+            ->method('getQuery')
+            ->will($this->returnValue($query));
+        $query
+            ->expects($this->once())
+            ->method('getOneOrNullResult')
+            ->will($this->returnValue($bulk = new Bulk()));
 
-        /* Tests */
+        /** @var \PHPUnit_Framework_MockObject_MockObject $em */
+        $em
+            ->expects($this->once())->method('remove')
+            ->with($bulk);
+        $em
+            ->expects($this->once())->method('flush');
 
-        $manager = new BulkManager($this->em);
         $manager->pop();
-
-        $repository = $this->em->getRepository('Cubalider\Component\Sms\Model\Bulk');
-        $this->assertEquals(1, count($repository->findAll()));
     }
 }
