@@ -15,7 +15,8 @@
         "cubalider/sms-queue-as-abstract": "0.3.*",
         "cubalider/mobile-with-doctrine-orm": "0.3.*",
         "doctrine/orm": "2.4.*",
-        "gedmo/doctrine-extensions": "2.3.*"
+        "gedmo/doctrine-extensions": "2.3.*",
+        "yosmanyga/dql-fit": "dev-master"
     },
     "require-dev": {
         "phpunit/phpunit": "4.1.*"
