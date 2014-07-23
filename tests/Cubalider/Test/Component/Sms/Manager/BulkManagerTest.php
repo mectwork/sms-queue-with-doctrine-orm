@@ -165,7 +165,7 @@ class BulkManagerTest extends \PHPUnit_Framework_TestCase
      * @covers \Cubalider\Component\Sms\Manager\BulkManager::pop
      * @covers \Cubalider\Component\Sms\Manager\BulkManager::getFirst
      */
-    public function tesPop()
+    public function testPop()
     {
         $em = $this->getMock('Doctrine\ORM\EntityManagerInterface');
         $builder = $this->getMockBuilder('Yosmanyga\Component\Dql\Fit\Builder')
