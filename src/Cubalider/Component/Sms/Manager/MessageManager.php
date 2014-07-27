@@ -2,10 +2,16 @@
 
 namespace Cubalider\Component\Sms\Manager;
 
-use Doctrine\ORM\EntityManager;
 use Cubalider\Component\Sms\Model\Bulk;
 use Cubalider\Component\Sms\Model\Message;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMInvalidArgumentException;
+use Yosmanyga\Component\Dql\Fit\AndFit;
+use Yosmanyga\Component\Dql\Fit\Builder;
+use Yosmanyga\Component\Dql\Fit\LimitFit;
+use Yosmanyga\Component\Dql\Fit\SelectCountFit;
+use Yosmanyga\Component\Dql\Fit\WhereCriteriaFit;
+
 
 /**
  * @author Yosmany Garcia <yosmanyga@gmail.com>
@@ -14,36 +20,36 @@ use Doctrine\ORM\ORMInvalidArgumentException;
 class MessageManager implements MessageManagerInterface
 {
     /**
-     * @var \Doctrine\ORM\EntityManager
+     * @var \Doctrine\ORM\EntityManagerInterface
+     */
+    private $class = 'Cubalider\Component\Sms\Model\Message';
+
+    /**
+     * @var \Doctrine\ORM\EntityManagerInterface
      */
     private $em;
 
     /**
-     * @var \Doctrine\ORM\EntityRepository
+     * @var Builder;
      */
-    private $repository;
+    private $builder;
 
     /**
-     * @var BulkManagerInterface
+     * @var \Cubalider\Component\Sms\Manager\BulkManagerInterface
      */
     private $bulkManager;
 
+
     /**
-     * Constructor
-     *
-     * Additionally it creates a repository using $em, for entity class
-     *
-     * @param EntityManager $em
-     * @param BulkManagerInterface   $bulkManager
+     * @param EntityManagerInterface $em
+     * @param Builder $builder
+     * @param BulkManagerInterface $bulkManager
      */
-    public function __construct(
-        EntityManager $em,
-        BulkManagerInterface $bulkManager = null
-    )
+    public function __construct(EntityManagerInterface $em, Builder $builder = null, BulkManagerInterface $bulkManager = null)
     {
         $this->em = $em;
-        $this->repository = $this->em->getRepository('Cubalider\Component\Sms\Model\Message');
-        $this->bulkManager = $bulkManager ?: new BulkManager($em);
+        $this->builder = $builder ? : new Builder($em);
+        $this->bulkManager = $bulkManager ? : new BulkManager($em);
     }
 
     /**
@@ -57,6 +63,7 @@ class MessageManager implements MessageManagerInterface
 
         $this->em->beginTransaction();
         try {
+            /** @var \Cubalider\Component\Sms\Model\Bulk $bulk */
             $bulk = $this->bulkManager->push();
 
             foreach ($messages as $message) {
@@ -85,15 +92,18 @@ class MessageManager implements MessageManagerInterface
      */
     public function pop($amount)
     {
+        /** @var \Cubalider\Component\Sms\Model\Bulk $bulk */
         $bulk = $this->bulkManager->approach();
 
-        $messages = $this->repository
-            ->createQueryBuilder('M')
-            ->where('M.bulk = :bulk')
-            ->setMaxResults($amount)
-            ->setParameter('bulk', $bulk)
-            ->getQuery()
-            ->getResult();
+        $dq = $this->builder->build(
+            $this->class,
+            new AndFit(array(
+                new WhereCriteriaFit(array('bulk' => $bulk->getId())),
+                new LimitFit($amount)
+            ))
+        );
+
+        $messages = $dq->getQuery()->getResult();
 
         if ($messages) {
             foreach ($messages as $message) {
@@ -119,19 +129,18 @@ class MessageManager implements MessageManagerInterface
      */
     public function estimate(Bulk $bulk)
     {
-        /** @var \Doctrine\ORM\AbstractQuery $query */
-        $query = $this->em
-            ->createQuery('
-                SELECT COUNT(M)
-                FROM Cubalider\Component\Sms\Model\Message M
-                WHERE M.bulk = :bulk
-            ');
-        $query->setParameter('bulk', $bulk);
+        $count = false;
+        $dq = $this->builder->build(
+            $this->class,
+            new AndFit(array(
+                new SelectCountFit('id'),
+                new WhereCriteriaFit(array('bulk' => $bulk->getId()))
+            ))
+        );
 
         try {
-            $count = $query->getSingleScalarResult();
+            $count = $dq->getQuery()->getSingleScalarResult();
         } catch (ORMInvalidArgumentException $e) {
-            $count = false;
         }
 
         return $count;
