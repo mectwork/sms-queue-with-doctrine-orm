@@ -88,7 +88,6 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
         /** @var \Yosmanyga\Component\Dql\Fit\Builder $builder */
         $manager = new MessageManager($em, $builder);
         $messages = array($message1 = new Message(), $message2 = new Message());
-
         $bulk = new Bulk();
 
         /** @var \PHPUnit_Framework_MockObject_MockObject $bulkManager */
@@ -137,7 +136,6 @@ class MessageManagerTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())->method('rollback');
 
         $manager->push($messages);
-
     }
 
     /**
